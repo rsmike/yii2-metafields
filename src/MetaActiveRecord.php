@@ -154,7 +154,7 @@ class MetaActiveRecord extends ActiveRecord
      */
     public function __set($attr, $value) {
         if ($this->isMeta($attr)) {
-            if ($value == null) {
+            if ($value === null) {
                 // UNSET VALUE
                 if (isset($this->meta()->$attr)) {
                     if (isset($this->_metaModified[$attr]) && $this->_metaModified[$attr] == self::META_ADDED) {
