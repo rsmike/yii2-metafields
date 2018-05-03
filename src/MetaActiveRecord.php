@@ -32,7 +32,7 @@ class MetaActiveRecord extends ActiveRecord
 
     /**
      * stdObject to store model meta data
-     * @var object
+     * @var \stdClass
      */
     private $_meta;
 
@@ -51,7 +51,7 @@ class MetaActiveRecord extends ActiveRecord
      * @return \yii\db\ActiveQuery
      */
     public function getMeta() {
-        return $this->hasMany(Meta::className(),
+        return $this->hasMany(Meta::class,
             ['owner_id' => static::meta_id_field()])->andWhere([Meta::tableName() . '.owner' => static::tableName()]);
     }
 
@@ -195,7 +195,7 @@ class MetaActiveRecord extends ActiveRecord
 
     /**
      * Saves modified meta values in DB
-     * @todo: this can be optimised (batch insert, batch delete, batch update)
+     * @todo: optimize speed, do not use AR
      */
     private function saveMeta() {
         if (empty($this->_metaModified)) {
@@ -279,10 +279,10 @@ class MetaActiveRecord extends ActiveRecord
     public function metaKeys($prefixed = true) {
         $keys = array_keys((array)$this->meta());
         if (!$prefixed) {
-            /** @noinspection PhpUnusedParameterInspection */
-            array_walk($keys, function (&$value, $key, $prefix) {
+            $prefix = static::meta_prefix();
+            array_walk($keys, function (&$value) use ($prefix) {
                 $value = substr($value, strlen($prefix));
-            }, static::meta_prefix());
+            });
         }
 
         return $keys;
