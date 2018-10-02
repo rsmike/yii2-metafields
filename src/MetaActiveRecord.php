@@ -34,17 +34,19 @@ class MetaActiveRecord extends ActiveRecord
      * stdObject to store model meta data
      * @var \stdClass
      */
-    private $_meta;
+    protected $_meta;
 
     /**
      * A list of "dirty" meta attributes
      * @var array
      */
-    private $_metaModified = [];
+    protected $_metaModified = [];
 
     const META_UNSET = 1;
     const META_MODIFIED = 2;
     const META_ADDED = 3;
+
+    const EVENT_META_SAVE = 'afterMetaSave';
 
     /**
      * Auto add relation to the meta table
@@ -78,7 +80,7 @@ class MetaActiveRecord extends ActiveRecord
      * @param string $attr
      * @return bool
      */
-    private function isMeta($attr) {
+    protected function isMeta($attr) {
         return preg_match('#^' . static::meta_prefix() . '#', $attr);
     }
 
@@ -87,7 +89,7 @@ class MetaActiveRecord extends ActiveRecord
      * @return \stdClass metadata object
      * @see $_meta
      */
-    private function meta() {
+    protected function meta() {
         if (!$this->_meta) {
             // Initialize at first call
             $this->_meta = new \stdClass();
@@ -197,7 +199,7 @@ class MetaActiveRecord extends ActiveRecord
      * Saves modified meta values in DB
      * @todo: optimize speed, do not use AR
      */
-    private function saveMeta() {
+    protected function saveMeta() {
         if (empty($this->_metaModified)) {
             // no dirty attributes, nothing to deal with
             return;
@@ -258,12 +260,14 @@ class MetaActiveRecord extends ActiveRecord
         }
 
         $this->_metaModified = [];
+
+        $this->trigger(self::EVENT_META_SAVE);
     }
 
     /**
      * Deletes all meta records from DB (typically, after user record was deleted)
      */
-    private function deleteMeta() {
+    protected function deleteMeta() {
         Meta::deleteAll([
             'owner' => $this->tableName(),
             'owner_id' => $this->{static::meta_id_field()}
